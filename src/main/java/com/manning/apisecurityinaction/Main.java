@@ -22,12 +22,7 @@ import static spark.Spark.internalServerError;
 import static spark.Spark.notFound;
 import static spark.Spark.post;
 
-/**
- * Hello world!
- *
- */
-public class Main
-{
+public class Main {
     public static void main( String[] args ) throws URISyntaxException, IOException {
         var datasource = JdbcConnectionPool.create("jdbc:h2:mem:natter", "natter", "password");
         var database = Database.forDataSource(datasource);
