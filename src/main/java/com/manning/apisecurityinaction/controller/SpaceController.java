@@ -26,7 +26,7 @@ public class SpaceController {
 
         var owner = json.getString("owner");
         if (!owner.matches("[a-zA-Z] [a-zA-Z0-9]{1,29}")) {
-            throw new IllegalArgumentException("Invalid username: " + owner);
+            throw new IllegalArgumentException("Invalid username");
         }
 
         return database.withTransaction(tx -> {
