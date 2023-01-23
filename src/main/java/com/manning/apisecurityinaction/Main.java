@@ -50,7 +50,7 @@ public class Main
 
     private static <T extends Exception> void badRequest(final T t, final Request request, final Response response) {
         response.status(400);
-        response.body("{\"error:\": \"" + t +  "\"}");
+        response.body("{\"error:\": \"" + t.getMessage() +  "\"}");
     }
 
     private static void createTables(final Database database) throws URISyntaxException, IOException {
