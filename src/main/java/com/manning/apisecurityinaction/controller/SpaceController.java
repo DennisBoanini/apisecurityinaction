@@ -16,7 +16,18 @@ public class SpaceController {
     public JSONObject createSpace(Request request, Response response) {
         var json = new JSONObject(request.body());
         var spaceName = json.getString("name");
+        if (spaceName == null) {
+            throw new IllegalArgumentException("Space name is mandatory");
+        }
+
+        if (spaceName.length() > 255) {
+            throw new IllegalArgumentException("Space name length cannot be greater than 255 characters");
+        }
+
         var owner = json.getString("owner");
+        if (!owner.matches("[a-zA-Z] [a-zA-Z0-9]{1,29}")) {
+            throw new IllegalArgumentException("Invalid username: " + owner);
+        }
 
         return database.withTransaction(tx -> {
             var spaceId = database.findUniqueLong("SELECT NEXT VALUE FOR space_id_seq;");
