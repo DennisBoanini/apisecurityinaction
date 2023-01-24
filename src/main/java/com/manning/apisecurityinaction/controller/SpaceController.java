@@ -25,8 +25,13 @@ public class SpaceController {
         }
 
         var owner = json.getString("owner");
-        if (!owner.matches("[a-zA-Z] [a-zA-Z0-9]{1,29}")) {
+        if (!owner.matches("[a-zA-Z]{1,29}")) {
             throw new IllegalArgumentException("Invalid username");
+        }
+
+        var subject = request.attribute("subject");
+        if (!owner.equals(subject)) {
+            throw new IllegalArgumentException("owner must match authenticated user");
         }
 
         return database.withTransaction(tx -> {

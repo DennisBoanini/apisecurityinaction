@@ -40,7 +40,7 @@ public class UserController {
             return;
         }
 
-        var offset = "Basic".length();
+        var offset = "Basic ".length();
         var credentials = new String(Base64.getDecoder().decode(authHeader.substring(offset)), StandardCharsets.UTF_8);
         var components = credentials.split(":", 2);
         if (components.length != 2) {
