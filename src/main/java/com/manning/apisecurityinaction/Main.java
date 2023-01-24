@@ -1,5 +1,6 @@
 package com.manning.apisecurityinaction;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.manning.apisecurityinaction.controller.SpaceController;
 import org.dalesbred.Database;
 import org.dalesbred.result.EmptyResultException;
@@ -34,7 +35,14 @@ public class Main {
         var spaceController = new SpaceController(database);
         post("/spaces", spaceController::createSpace);
 
+        var rateLimiter = RateLimiter.create(2.0d);
+
         before(((request, response) -> {
+            if (!rateLimiter.tryAcquire()) {
+                response.header("Retry-After", "2");
+                halt(429);
+            }
+
             if (request.requestMethod().equals("POST") && !"application/json".equals(request.contentType())) {
                 halt(415, new JSONObject()
                         .put("error", "Only application/json supported").toString());
