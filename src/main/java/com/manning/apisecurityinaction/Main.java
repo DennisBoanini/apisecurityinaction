@@ -41,6 +41,7 @@ public class Main {
 
         var rateLimiter = RateLimiter.create(2.0d);
 
+        before(userController::authenticate);
         before(((request, response) -> {
             if (!rateLimiter.tryAcquire()) {
                 response.header("Retry-After", "2");
