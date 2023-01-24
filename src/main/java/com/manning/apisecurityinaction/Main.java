@@ -2,6 +2,7 @@ package com.manning.apisecurityinaction;
 
 import com.google.common.util.concurrent.RateLimiter;
 import com.manning.apisecurityinaction.controller.SpaceController;
+import com.manning.apisecurityinaction.controller.UserController;
 import org.dalesbred.Database;
 import org.dalesbred.result.EmptyResultException;
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -34,6 +35,9 @@ public class Main {
 
         var spaceController = new SpaceController(database);
         post("/spaces", spaceController::createSpace);
+
+        var userController = new UserController(database);
+        post("/users", userController::registerUser);
 
         var rateLimiter = RateLimiter.create(2.0d);
 
