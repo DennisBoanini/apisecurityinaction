@@ -19,6 +19,7 @@ import java.nio.file.Paths;
 import static spark.Spark.afterAfter;
 import static spark.Spark.before;
 import static spark.Spark.exception;
+import static spark.Spark.get;
 import static spark.Spark.halt;
 import static spark.Spark.internalServerError;
 import static spark.Spark.notFound;
@@ -35,6 +36,10 @@ public class Main {
 
         var spaceController = new SpaceController(database);
         post("/spaces", spaceController::createSpace);
+        get("/spaces", spaceController::getSpaces);
+        post("/spaces/:spaceId/messages", spaceController::postMessage);
+        get("/spaces/:spaceId/messages/:msgId", spaceController::readMessage);
+        get("/spaces/:spaceId/messages", spaceController::findMessages);
 
         var userController = new UserController(database);
         post("/users", userController::registerUser);

@@ -1,9 +1,13 @@
 package com.manning.apisecurityinaction.controller;
 
+import com.manning.apisecurityinaction.model.Message;
+import com.manning.apisecurityinaction.model.Space;
 import org.dalesbred.Database;
 import org.json.JSONObject;
 import spark.Request;
 import spark.Response;
+
+import java.util.List;
 
 public class SpaceController {
 
@@ -50,5 +54,66 @@ public class SpaceController {
                     .put("name", spaceName)
                     .put("uri", "/spaces/" + spaceId);
         });
+    }
+
+    public JSONObject postMessage(final Request request, final Response response) {
+        var spaceId = Long.parseLong(request.params(":spaceId"));
+        var json = new JSONObject(request.body());
+        var user = json.getString("author");
+        if (!user.matches("[a-zA-Z0-9]{0,29}")) {
+            throw new IllegalArgumentException("invalid username");
+        }
+        var message = json.getString("message");
+        if (message.length() > 1024) {
+            throw new IllegalArgumentException("message is too long");
+        }
+
+        return database.withTransaction(tx -> {
+            var msgId = database.findUniqueLong(
+                    "SELECT NEXT VALUE FOR msg_id_seq;");
+            database.updateUnique(
+                    "INSERT INTO messages(space_id, msg_id, msg_time," +
+                            "author, msg_text) " +
+                            "VALUES(?, ?, current_timestamp, ?, ?)",
+                    spaceId, msgId, user, message);
+
+            response.status(201);
+            var uri = "/spaces/" + spaceId + "/messages/" + msgId;
+            response.header("Location", uri);
+            return new JSONObject().put("uri", uri);
+        });
+    }
+
+    public Message readMessage(final Request request, final Response response) {
+        var spaceId = Long.parseLong(request.params(":spaceId"));
+        var messageId = Long.parseLong(request.params(":msgId"));
+
+        final Message message = database.findUnique(Message.class,
+                "SELECT space_id as spaceId, msg_id as msgId, author, msg_time, msg_text " +
+                        "FROM messages " +
+                        "WHERE msg_id = ? AND space_id = ?",
+                messageId, spaceId);
+
+        response.status(200);
+        return message;
+    }
+
+    public List<Message> findMessages(final Request request, final Response response) {
+        var spaceId = Long.parseLong(request.params(":spaceId"));
+
+        List<Message> messages = database.findAll(Message.class,
+                "SELECT space_id as spaceId, msg_id as msgId, author, msg_time, msg_text " +
+                        "FROM messages " +
+                        "WHERE space_id = ?",
+                spaceId
+        );
+        return messages;
+    }
+
+    public List<Space> getSpaces(final Request request, final Response response) {
+        return database.findAll(Space.class,
+                "SELECT space_id, owner, name " +
+                        "FROM spaces"
+                );
     }
 }
