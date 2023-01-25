@@ -24,9 +24,11 @@ import static spark.Spark.halt;
 import static spark.Spark.internalServerError;
 import static spark.Spark.notFound;
 import static spark.Spark.post;
+import static spark.Spark.secure;
 
 public class Main {
     public static void main( String[] args ) throws URISyntaxException, IOException {
+        secure("localhost.p12", "changeit", null, null);
         var datasource = JdbcConnectionPool.create("jdbc:h2:mem:natter", "natter", "password");
         var database = Database.forDataSource(datasource);
         createTables(database);
