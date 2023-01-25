@@ -1,6 +1,7 @@
 package com.manning.apisecurityinaction;
 
 import com.google.common.util.concurrent.RateLimiter;
+import com.manning.apisecurityinaction.controller.AuditController;
 import com.manning.apisecurityinaction.controller.SpaceController;
 import com.manning.apisecurityinaction.controller.UserController;
 import org.dalesbred.Database;
@@ -36,36 +37,21 @@ public class Main {
         datasource = JdbcConnectionPool.create("jdbc:h2:mem:natter", "natter_api_user", "password");
         database = Database.forDataSource(datasource);
 
-        var spaceController = new SpaceController(database);
-        post("/spaces", spaceController::createSpace);
-        get("/spaces", spaceController::getSpaces);
-        post("/spaces/:spaceId/messages", spaceController::postMessage);
-        get("/spaces/:spaceId/messages/:msgId", spaceController::readMessage);
-        get("/spaces/:spaceId/messages", spaceController::findMessages);
-
-        var userController = new UserController(database);
-        post("/users", userController::registerUser);
-
         var rateLimiter = RateLimiter.create(2.0d);
 
-        before(userController::authenticate);
         before(((request, response) -> {
             if (!rateLimiter.tryAcquire()) {
                 response.header("Retry-After", "2");
                 halt(429);
             }
+        }));
 
+        before(((request, response) -> {
             if (request.requestMethod().equals("POST") && !"application/json".equals(request.contentType())) {
                 halt(415, new JSONObject()
                         .put("error", "Only application/json supported").toString());
             }
         }));
-
-        internalServerError(new JSONObject().put("error", "internal server error").toString());
-        notFound(new JSONObject().put("error", "not found").toString());
-        exception(IllegalArgumentException.class, Main::badRequest);
-        exception(JSONException.class, Main::badRequest);
-        exception(EmptyResultException.class, (e, request, response) -> response.status(404));
 
         afterAfter(((request, response) -> {
             response.type("application/json;charset=utf-8");
@@ -76,6 +62,31 @@ public class Main {
             response.header("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; sandbox");
             response.header("Server", "");
         }));
+
+
+        var userController = new UserController(database);
+        before(userController::authenticate);
+        post("/users", userController::registerUser);
+
+        var auditController = new AuditController(database);
+        before(auditController::auditRequestStart);
+        afterAfter(auditController::auditRequestEnd);
+        get("/logs", auditController::readAuditLog);
+
+        var spaceController = new SpaceController(database);
+        post("/spaces", spaceController::createSpace);
+        get("/spaces", spaceController::getSpaces);
+        post("/spaces/:spaceId/messages", spaceController::postMessage);
+        get("/spaces/:spaceId/messages/:msgId", spaceController::readMessage);
+        get("/spaces/:spaceId/messages", spaceController::findMessages);
+
+        internalServerError(new JSONObject().put("error", "internal server error").toString());
+        notFound(new JSONObject().put("error", "not found").toString());
+        exception(IllegalArgumentException.class, Main::badRequest);
+        exception(JSONException.class, Main::badRequest);
+        exception(EmptyResultException.class, (e, request, response) -> response.status(404));
+
+
     }
 
     private static <T extends Exception> void badRequest(final T t, final Request request, final Response response) {
