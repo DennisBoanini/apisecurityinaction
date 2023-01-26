@@ -83,6 +83,8 @@ public class Main {
         get("/spaces/:spaceId/messages/:msgId", spaceController::readMessage);
         before("/spaces/:spaceId/messages", userController.requirePermissions("GET", "r"));
         get("/spaces/:spaceId/messages", spaceController::findMessages);
+        before("/spaces/:spaceId/members", userController.requirePermissions("POST", "r"));
+        post("/spaces/:spaceId/members", spaceController::addMember);
 
         internalServerError(new JSONObject().put("error", "internal server error").toString());
         notFound(new JSONObject().put("error", "not found").toString());
