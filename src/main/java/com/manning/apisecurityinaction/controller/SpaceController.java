@@ -47,6 +47,12 @@ public class SpaceController {
                     spaceId, spaceName, owner
             );
 
+            database.updateUnique(
+                    "INSERT INTO permissions(space_id, user_id, perms) " +
+                            "VALUES(?, ?, ?)",
+                    spaceId, owner, "rwd"
+            );
+
             response.status(201);
             response.header("Location", "/spaces/" + spaceId);
 
