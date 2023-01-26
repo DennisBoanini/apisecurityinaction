@@ -77,8 +77,11 @@ public class Main {
         before("/spaces", userController::requireAuthentication);
         post("/spaces", spaceController::createSpace);
         get("/spaces", spaceController::getSpaces);
+        before("/spaces/:spaceId/messages", userController.requirePermissions("POST", "w"));
         post("/spaces/:spaceId/messages", spaceController::postMessage);
+        before("/spaces/:spaceId/messages/:msgId", userController.requirePermissions("GET", "r"));
         get("/spaces/:spaceId/messages/:msgId", spaceController::readMessage);
+        before("/spaces/:spaceId/messages", userController.requirePermissions("GET", "r"));
         get("/spaces/:spaceId/messages", spaceController::findMessages);
 
         internalServerError(new JSONObject().put("error", "internal server error").toString());
