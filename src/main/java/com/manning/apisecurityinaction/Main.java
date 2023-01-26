@@ -74,6 +74,7 @@ public class Main {
         get("/logs", auditController::readAuditLog);
 
         var spaceController = new SpaceController(database);
+        before("/spaces", userController::requireAuthentication);
         post("/spaces", spaceController::createSpace);
         get("/spaces", spaceController::getSpaces);
         post("/spaces/:spaceId/messages", spaceController::postMessage);

@@ -9,6 +9,8 @@ import spark.Response;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+import static spark.Spark.halt;
+
 public class UserController {
     private final Database database;
 
@@ -52,6 +54,13 @@ public class UserController {
         var hash = database.findOptional(String.class, "SELECT pw_hash FROM users WHERE user_id = ?", username);
         if (hash.isPresent() && SCryptUtil.check(password, hash.get())) {
             request.attribute("subject", username);
+        }
+    }
+
+    public void requireAuthentication(Request request, Response response) {
+        if (request.attribute("subject") == null) {
+            response.header("WWW-Authenticate", "Basic realm=\"/\" charset=\"UTF-8\"");
+            halt(401);
         }
     }
 }
