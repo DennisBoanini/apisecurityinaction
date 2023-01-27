@@ -3,7 +3,9 @@ package com.manning.apisecurityinaction;
 import com.google.common.util.concurrent.RateLimiter;
 import com.manning.apisecurityinaction.controller.AuditController;
 import com.manning.apisecurityinaction.controller.SpaceController;
+import com.manning.apisecurityinaction.controller.TokenController;
 import com.manning.apisecurityinaction.controller.UserController;
+import com.manning.apisecurityinaction.token.TokenStore;
 import org.dalesbred.Database;
 import org.dalesbred.result.EmptyResultException;
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -65,7 +67,6 @@ public class Main {
             response.header("Server", "");
         }));
 
-
         var userController = new UserController(database);
         before(userController::authenticate);
         post("/users", userController::registerUser);
@@ -74,6 +75,11 @@ public class Main {
         before(auditController::auditRequestStart);
         afterAfter(auditController::auditRequestEnd);
         get("/logs", auditController::readAuditLog);
+
+        final TokenStore tokenStore = null;
+        final var tokenController = new TokenController(tokenStore);
+        before("/sessions", userController::requireAuthentication);
+        post("/sessions", tokenController::login);
 
         var spaceController = new SpaceController(database);
         before("/spaces", userController::requireAuthentication);
