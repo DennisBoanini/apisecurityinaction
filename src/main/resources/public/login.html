@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>API Security in Action</title>
+    <script type="text/javascript" src="login.js"></script>
+    <style type="text/css">
+        form {
+            display: flex;
+            flex-direction: column;
+            width: 500px;
+            border: solid 1px black;
+            padding: 20px;
+            border-radius: 20px;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        form > label {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>User Login</h1>
+<h2 style="display: none;" id="s_response"></h2>
+<form id="login">
+    <label for="username">
+        Username
+        <input type="text" name="username" id="username">
+    </label>
+
+    <label for="password">
+        Password
+        <input type="password" name="password" id="password">
+    </label>
+    <button type="submit">Login</button>
+</form>
+</body>
+</html>
