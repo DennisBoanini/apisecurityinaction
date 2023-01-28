@@ -41,4 +41,16 @@ public class TokenController {
             }
         });
     }
+
+    public JSONObject logout(Request request, Response response) {
+        final var tokenId = request.headers("X-CSRF-Token");
+        if (tokenId == null) {
+            throw new IllegalArgumentException("missing token header");
+        }
+
+        tokenStore.revoke(request, tokenId);
+        response.status(200);
+
+        return new JSONObject();
+    }
 }

@@ -11,8 +11,9 @@ public interface TokenStore {
 
     String create(Request request, Token token);
     Optional<Token> read(Request request, String tokenId);
+    void revoke(Request request, String tokenId);
 
-    public class Token {
+    class Token {
         private final Instant expiry;
         private final String username;
         private final Map<String, String> attributes;

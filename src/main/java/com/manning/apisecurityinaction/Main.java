@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 
 import static spark.Spark.afterAfter;
 import static spark.Spark.before;
+import static spark.Spark.delete;
 import static spark.Spark.exception;
 import static spark.Spark.get;
 import static spark.Spark.halt;
@@ -82,6 +83,7 @@ public class Main {
 
         before("/sessions", userController::requireAuthentication);
         post("/sessions", tokenController::login);
+        delete("/sessions", tokenController::logout);
 
         var spaceController = new SpaceController(database);
         before("/spaces", userController::requireAuthentication);
