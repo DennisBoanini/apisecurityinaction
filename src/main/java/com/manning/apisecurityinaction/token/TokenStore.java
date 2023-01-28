@@ -22,5 +22,21 @@ public interface TokenStore {
             this.username = username;
             this.attributes = new ConcurrentHashMap<>();
         }
+
+        public Instant getExpiry() {
+            return expiry;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public Map<String, String> getAttributes() {
+            return attributes;
+        }
+
+        public void setAttributes(final Map<String, String> attrs) {
+            this.attributes.putAll(attrs);
+        }
     }
 }

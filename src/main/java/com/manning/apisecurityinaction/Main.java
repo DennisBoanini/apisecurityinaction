@@ -5,6 +5,7 @@ import com.manning.apisecurityinaction.controller.AuditController;
 import com.manning.apisecurityinaction.controller.SpaceController;
 import com.manning.apisecurityinaction.controller.TokenController;
 import com.manning.apisecurityinaction.controller.UserController;
+import com.manning.apisecurityinaction.token.CookieTokenStore;
 import com.manning.apisecurityinaction.token.TokenStore;
 import org.dalesbred.Database;
 import org.dalesbred.result.EmptyResultException;
@@ -67,8 +68,11 @@ public class Main {
             response.header("Server", "");
         }));
 
+        final TokenStore tokenStore = new CookieTokenStore();
+        final var tokenController = new TokenController(tokenStore);
         var userController = new UserController(database);
         before(userController::authenticate);
+        before(tokenController::validateToken);
         post("/users", userController::registerUser);
 
         var auditController = new AuditController(database);
@@ -76,8 +80,6 @@ public class Main {
         afterAfter(auditController::auditRequestEnd);
         get("/logs", auditController::readAuditLog);
 
-        final TokenStore tokenStore = null;
-        final var tokenController = new TokenController(tokenStore);
         before("/sessions", userController::requireAuthentication);
         post("/sessions", tokenController::login);
 
