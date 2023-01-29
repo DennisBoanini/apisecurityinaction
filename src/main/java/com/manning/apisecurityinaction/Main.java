@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Set;
 
 import static spark.Spark.afterAfter;
 import static spark.Spark.before;
@@ -47,13 +48,14 @@ public class Main {
         database = Database.forDataSource(datasource);
 
         var rateLimiter = RateLimiter.create(2.0d);
-
         before(((request, response) -> {
             if (!rateLimiter.tryAcquire()) {
                 response.header("Retry-After", "2");
                 halt(429);
             }
         }));
+
+        before(new CorsFilter(Set.of("https://localhost:9999")));
 
         before(((request, response) -> {
             if (request.requestMethod().equals("POST") && !"application/json".equals(request.contentType())) {
