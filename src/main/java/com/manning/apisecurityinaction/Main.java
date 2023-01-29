@@ -14,6 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import spark.Request;
 import spark.Response;
+import spark.Service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -28,12 +29,14 @@ import static spark.Spark.get;
 import static spark.Spark.halt;
 import static spark.Spark.internalServerError;
 import static spark.Spark.notFound;
+import static spark.Spark.port;
 import static spark.Spark.post;
 import static spark.Spark.secure;
 import static spark.Spark.staticFiles;
 
 public class Main {
     public static void main( String[] args ) throws URISyntaxException, IOException {
+        port(args.length > 0 ? Integer.parseInt(args[0]) : Service.SPARK_DEFAULT_PORT);
         staticFiles.location("/public");
         secure("localhost.p12", "changeit", null, null);
         var datasource = JdbcConnectionPool.create("jdbc:h2:mem:natter", "natter", "password");
