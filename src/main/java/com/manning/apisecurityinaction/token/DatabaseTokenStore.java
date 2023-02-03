@@ -10,6 +10,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class DatabaseTokenStore implements TokenStore {
 
@@ -19,6 +21,8 @@ public class DatabaseTokenStore implements TokenStore {
     public DatabaseTokenStore(final Database database) {
         this.database = database;
         this.secureRandom = new SecureRandom();
+        Executors.newSingleThreadScheduledExecutor()
+                .scheduleAtFixedRate(this::deleteExpiredTokens, 10, 10, TimeUnit.MINUTES);
     }
 
     private String randomId() {
@@ -55,6 +59,10 @@ public class DatabaseTokenStore implements TokenStore {
     @Override
     public void revoke(final Request request, final String tokenId) {
         database.update("DELETE FROM tokens WHERE token_id = ?", tokenId);
+    }
+
+    public void deleteExpiredTokens() {
+        database.update("DELETE FROM tokens WHERE expiry < current_timestamp");
     }
 
     private Token readToken(ResultSet resultSet) throws SQLException {
