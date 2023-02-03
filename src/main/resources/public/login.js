@@ -12,7 +12,6 @@ function login(event) {
 
     fetch('https://localhost:4567/sessions', {
         method: 'POST',
-        credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': credentials
