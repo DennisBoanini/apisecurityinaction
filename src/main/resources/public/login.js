@@ -20,9 +20,7 @@ function login(event) {
     }).then(response => {
         if (response.ok) {
             response.json()
-                .then(json => {
-                    document.cookie = `csrfToken=${json.token};Secure;SameSite=strict`
-                })
+                .then(json => localStorage.setItem('token', json.token))
             window.location.replace('/natter.html');
         }
     }).catch(error => console.error(`Error: ${error}`));

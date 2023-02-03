@@ -8,15 +8,14 @@ function createSpace(event) {
     event.preventDefault();
     const space = document.getElementById("space").value;
     const owner = document.getElementById("owner").value;
-    const csrfToken = getCookie('csrfToken');
+    const token = localStorage.getItem('token')
 
     fetch('https://localhost:4567/spaces', {
         method: 'POST',
-        credentials: 'include',
         body: JSON.stringify({name: space, owner: owner}),
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-Token': csrfToken
+            'Authorization': `Bearer ${token}`
         }
     }).then(response => {
         if (response.ok) {
@@ -38,15 +37,4 @@ function createSpace(event) {
         success.innerText = `Errore creating space.`
         console.error(`Error: ${error}`)
     });
-}
-
-function getCookie(cookieName) {
-    const cookieValue = document.cookie.split(';')
-        .map(item => item.split('=')
-            .map(x => decodeURIComponent(x.trim())))
-        .filter(item => item[0] === cookieName)[0];
-
-    if (cookieValue) {
-        return cookieValue[1];
-    }
 }
