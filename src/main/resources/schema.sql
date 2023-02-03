@@ -51,6 +51,7 @@ CREATE TABLE permissions
 
 CREATE INDEX msg_timestamp_idx ON messages (msg_time);
 CREATE UNIQUE INDEX space_name_idx ON spaces (name);
+CREATE INDEX expired_token_idx ON tokens(expiry);
 
 CREATE USER natter_api_user PASSWORD 'password';
 GRANT SELECT, INSERT ON spaces, messages, users, audit_log, permissions, tokens TO natter_api_user;
