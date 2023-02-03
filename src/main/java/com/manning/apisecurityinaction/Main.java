@@ -5,8 +5,7 @@ import com.manning.apisecurityinaction.controller.AuditController;
 import com.manning.apisecurityinaction.controller.SpaceController;
 import com.manning.apisecurityinaction.controller.TokenController;
 import com.manning.apisecurityinaction.controller.UserController;
-import com.manning.apisecurityinaction.token.CookieTokenStore;
-import com.manning.apisecurityinaction.token.TokenStore;
+import com.manning.apisecurityinaction.token.DatabaseTokenStore;
 import org.dalesbred.Database;
 import org.dalesbred.result.EmptyResultException;
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -74,7 +73,7 @@ public class Main {
             response.header("Server", "");
         }));
 
-        final TokenStore tokenStore = new CookieTokenStore();
+        final var tokenStore = new DatabaseTokenStore(database);
         final var tokenController = new TokenController(tokenStore);
         var userController = new UserController(database);
         before(userController::authenticate);
