@@ -40,7 +40,7 @@ public class DatabaseTokenStore implements TokenStore {
         database.updateUnique(
                 "INSERT INTO tokens(token_id, user_id, expiry, attributes) " +
                         "VALUES(?, ?, ?, ?)",
-                tokenId, token.getUsername(), token.getExpiry(), attrs
+                hash(tokenId), token.getUsername(), token.getExpiry(), attrs
         );
 
         return tokenId;
@@ -52,13 +52,13 @@ public class DatabaseTokenStore implements TokenStore {
                 "SELECT user_id, expiry, attributes " +
                         "FROM tokens " +
                         "WHERE token_id = ?",
-                tokenId
+                hash(tokenId)
         );
     }
 
     @Override
     public void revoke(final Request request, final String tokenId) {
-        database.update("DELETE FROM tokens WHERE token_id = ?", tokenId);
+        database.update("DELETE FROM tokens WHERE token_id = ?", hash(tokenId));
     }
 
     public void deleteExpiredTokens() {
@@ -78,5 +78,11 @@ public class DatabaseTokenStore implements TokenStore {
         token.setAttributes(attrs);
 
         return token;
+    }
+
+    private String hash(String tokenId) {
+        final var hash = CookieTokenStore.sha256(tokenId);
+
+        return Base64URL.encode(hash);
     }
 }
