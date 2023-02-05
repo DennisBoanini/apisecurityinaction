@@ -6,6 +6,7 @@ import com.manning.apisecurityinaction.controller.SpaceController;
 import com.manning.apisecurityinaction.controller.TokenController;
 import com.manning.apisecurityinaction.controller.UserController;
 import com.manning.apisecurityinaction.token.DatabaseTokenStore;
+import com.manning.apisecurityinaction.token.HmacTokenStore;
 import org.dalesbred.Database;
 import org.dalesbred.result.EmptyResultException;
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -15,10 +16,16 @@ import spark.Request;
 import spark.Response;
 import spark.Service;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Set;
 
 import static spark.Spark.afterAfter;
@@ -35,7 +42,7 @@ import static spark.Spark.secure;
 import static spark.Spark.staticFiles;
 
 public class Main {
-    public static void main( String[] args ) throws URISyntaxException, IOException {
+    public static void main( String[] args ) throws URISyntaxException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
         port(args.length > 0 ? Integer.parseInt(args[0]) : Service.SPARK_DEFAULT_PORT);
         staticFiles.location("/public");
         secure("localhost.p12", "changeit", null, null);
@@ -73,9 +80,15 @@ public class Main {
             response.header("Server", "");
         }));
 
-        final var tokenStore = new DatabaseTokenStore(database);
+        final var keyPassword = System.getProperty("keystore.password", "changeit").toCharArray();
+        final var keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(new FileInputStream("keystore.p12"), keyPassword);
+        final var macKey = keyStore.getKey("hmac-key", keyPassword);
+        final var databaseTokenStore = new DatabaseTokenStore(database);
+        final var tokenStore = new HmacTokenStore(databaseTokenStore, macKey);
         final var tokenController = new TokenController(tokenStore);
-        var userController = new UserController(database);
+
+        final var userController = new UserController(database);
         before(userController::authenticate);
         before(tokenController::validateToken);
         post("/users", userController::registerUser);
