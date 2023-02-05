@@ -5,8 +5,12 @@ import com.manning.apisecurityinaction.controller.AuditController;
 import com.manning.apisecurityinaction.controller.SpaceController;
 import com.manning.apisecurityinaction.controller.TokenController;
 import com.manning.apisecurityinaction.controller.UserController;
-import com.manning.apisecurityinaction.token.HmacTokenStore;
-import com.manning.apisecurityinaction.token.JsonTokenStore;
+import com.manning.apisecurityinaction.token.SignedJwtTokenStore;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+import javax.crypto.SecretKey;
 import org.dalesbred.Database;
 import org.dalesbred.result.EmptyResultException;
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -42,7 +46,7 @@ import static spark.Spark.secure;
 import static spark.Spark.staticFiles;
 
 public class Main {
-    public static void main( String[] args ) throws URISyntaxException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException {
+    public static void main( String[] args ) throws URISyntaxException, IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, JOSEException {
         port(args.length > 0 ? Integer.parseInt(args[0]) : Service.SPARK_DEFAULT_PORT);
         staticFiles.location("/public");
         secure("localhost.p12", "changeit", null, null);
@@ -84,8 +88,10 @@ public class Main {
         final var keyStore = KeyStore.getInstance("PKCS12");
         keyStore.load(new FileInputStream("keystore.p12"), keyPassword);
         final var macKey = keyStore.getKey("hmac-key", keyPassword);
-        final var jsonTokenStore = new JsonTokenStore();
-        final var tokenStore = new HmacTokenStore(jsonTokenStore, macKey);
+        final var algorithm = JWSAlgorithm.HS256;
+        final var signer = new MACSigner((SecretKey) macKey);
+        final var verifier = new MACVerifier((SecretKey) macKey);
+        final var tokenStore = new SignedJwtTokenStore(signer, verifier, algorithm, "https://loclahost:4567");
         final var tokenController = new TokenController(tokenStore);
 
         final var userController = new UserController(database);

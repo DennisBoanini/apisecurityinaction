@@ -10,6 +10,8 @@ import com.nimbusds.jwt.SignedJWT;
 import spark.Request;
 
 import java.sql.Date;
+import java.text.ParseException;
+import java.util.HashMap;
 import java.util.Optional;
 
 public class SignedJwtTokenStore implements TokenStore {
@@ -46,7 +48,29 @@ public class SignedJwtTokenStore implements TokenStore {
 
     @Override
     public Optional<Token> read(final Request request, final String tokenId) {
-        return Optional.empty();
+        try {
+            final var jwt = SignedJWT.parse(tokenId);
+            if (!jwt.verify(this.verifier)) {
+                throw new JOSEException("Invalid signature");
+            }
+
+            final var claims = jwt.getJWTClaimsSet();
+            if (!claims.getAudience().contains(this.audience)) {
+                throw new JOSEException("Incorrect audience");
+            }
+
+            final var expiry = claims.getExpirationTime().toInstant();
+            final var subject = claims.getSubject();
+            final var token = new Token(expiry, subject);
+            final var attrs = claims.getJSONObjectClaim("attrs");
+            final var attrsMap = new HashMap<String, String>();
+            attrs.forEach((key, value) -> attrsMap.put(key, (String) value));
+            token.setAttributes(attrsMap);
+
+            return Optional.of(token);
+        } catch (ParseException | JOSEException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
