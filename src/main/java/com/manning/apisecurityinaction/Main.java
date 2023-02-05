@@ -5,8 +5,8 @@ import com.manning.apisecurityinaction.controller.AuditController;
 import com.manning.apisecurityinaction.controller.SpaceController;
 import com.manning.apisecurityinaction.controller.TokenController;
 import com.manning.apisecurityinaction.controller.UserController;
-import com.manning.apisecurityinaction.token.DatabaseTokenStore;
 import com.manning.apisecurityinaction.token.HmacTokenStore;
+import com.manning.apisecurityinaction.token.JsonTokenStore;
 import org.dalesbred.Database;
 import org.dalesbred.result.EmptyResultException;
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -84,8 +84,8 @@ public class Main {
         final var keyStore = KeyStore.getInstance("PKCS12");
         keyStore.load(new FileInputStream("keystore.p12"), keyPassword);
         final var macKey = keyStore.getKey("hmac-key", keyPassword);
-        final var databaseTokenStore = new DatabaseTokenStore(database);
-        final var tokenStore = new HmacTokenStore(databaseTokenStore, macKey);
+        final var jsonTokenStore = new JsonTokenStore();
+        final var tokenStore = new HmacTokenStore(jsonTokenStore, macKey);
         final var tokenController = new TokenController(tokenStore);
 
         final var userController = new UserController(database);
