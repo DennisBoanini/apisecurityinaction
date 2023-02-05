@@ -68,7 +68,7 @@ public class DatabaseTokenStore implements TokenStore {
     private Token readToken(ResultSet resultSet) throws SQLException {
         final var username = resultSet.getString(1);
         final var expiry = resultSet.getTimestamp(2).toInstant();
-        final var json = new JSONObject(resultSet.getString(2));
+        final var json = new JSONObject(resultSet.getString(3));
 
         final var token = new Token(expiry, username);
         final Map<String, String> attrs = new HashMap<>();
