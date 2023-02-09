@@ -14,7 +14,7 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Optional;
 
-public class SignedJwtTokenStore implements TokenStore {
+public class SignedJwtTokenStore implements AuthenticatedTokenStore {
     private final JWSSigner signer;
     private final JWSVerifier verifier;
     private final JWSAlgorithm algorithm;

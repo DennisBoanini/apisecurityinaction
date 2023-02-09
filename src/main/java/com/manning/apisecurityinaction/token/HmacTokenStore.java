@@ -9,14 +9,22 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.util.Optional;
 
-public class HmacTokenStore implements TokenStore {
+public class HmacTokenStore implements SecureTokenStore {
 
     private final TokenStore delegate;
     private final Key macKey;
 
-    public HmacTokenStore(final TokenStore delegate, final Key macKey) {
+    private HmacTokenStore(final TokenStore delegate, final Key macKey) {
         this.delegate = delegate;
         this.macKey = macKey;
+    }
+
+    public static SecureTokenStore wrap(ConfidentialTokenStore store, Key macKey) {
+        return new HmacTokenStore(store, macKey);
+    }
+
+    public static SecureTokenStore wrap(TokenStore store, Key macKey) {
+        return new HmacTokenStore(store, macKey);
     }
 
     @Override

@@ -20,14 +20,19 @@ import java.util.Set;
 public class EncryptedJwtToeknStore implements TokenStore {
 
     private final SecretKey secretKey;
+    private final DatabaseTokenStore tokenAllowList;
 
-    public EncryptedJwtToeknStore(final SecretKey secretKey) {
+    public EncryptedJwtToeknStore(final SecretKey secretKey, final DatabaseTokenStore tokenAllowList) {
         this.secretKey = secretKey;
+        this.tokenAllowList = tokenAllowList;
     }
 
     @Override
     public String create(final Request request, final Token token) {
+        final var allowListToken = new Token(token.getExpiry(), token.getUsername());
+        final var jwtId = tokenAllowList.create(request, allowListToken);
         final var claimsBuilder = new JWTClaimsSet.Builder()
+                .jwtID(jwtId)
                 .subject(token.getUsername())
                 .audience("https://localhost:4567")
                 .expirationTime(Date.from(token.getExpiry()));
@@ -79,6 +84,15 @@ public class EncryptedJwtToeknStore implements TokenStore {
 
     @Override
     public void revoke(final Request request, final String tokenId) {
+        try {
+            final var jwt = EncryptedJWT.parse(tokenId);
+            final var decryptor = new DirectDecrypter(this.secretKey);
+            jwt.decrypt(decryptor);
+            final var claims = jwt.getJWTClaimsSet();
 
+            tokenAllowList.revoke(request, claims.getJWTID());
+        } catch (ParseException | JOSEException e) {
+            throw new IllegalArgumentException("Invalid token", e);
+        }
     }
 }

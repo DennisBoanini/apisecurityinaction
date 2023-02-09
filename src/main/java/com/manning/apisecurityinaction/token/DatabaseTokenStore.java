@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class DatabaseTokenStore implements TokenStore {
+public class DatabaseTokenStore implements SecureTokenStore {
 
     private final Database database;
     private final SecureRandom secureRandom;
