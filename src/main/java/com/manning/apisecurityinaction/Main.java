@@ -5,8 +5,7 @@ import com.manning.apisecurityinaction.controller.AuditController;
 import com.manning.apisecurityinaction.controller.SpaceController;
 import com.manning.apisecurityinaction.controller.TokenController;
 import com.manning.apisecurityinaction.controller.UserController;
-import com.manning.apisecurityinaction.token.EncryptedTokenStore;
-import com.manning.apisecurityinaction.token.JsonTokenStore;
+import com.manning.apisecurityinaction.token.EncryptedJwtToeknStore;
 import com.nimbusds.jose.JOSEException;
 import org.dalesbred.Database;
 import org.dalesbred.result.EmptyResultException;
@@ -87,7 +86,7 @@ public class Main {
         keyStore.load(new FileInputStream("keystore.p12"), keyPassword);
         final var encKey = keyStore.getKey("aes-key", keyPassword);
         final var naclKey = SecretBox.key(encKey.getEncoded());
-        final var tokenStore = new EncryptedTokenStore(new JsonTokenStore(), naclKey);
+        final var tokenStore = new EncryptedJwtToeknStore(naclKey);
         final var tokenController = new TokenController(tokenStore);
 
         final var userController = new UserController(database);
